@@ -64,7 +64,7 @@ async function analyzeURL(url, providerKey = 'openai') {
   const body = {
     model: provider.model,
     messages: [{ role: 'user', content: prompt }],
-    max_tokens: 600,
+    max_completion_tokens: 600,
     temperature: 0.3
   };
 
@@ -81,7 +81,11 @@ async function analyzeURL(url, providerKey = 'openai') {
   });
 
   if (response.status === 401) throw new Error('API Key 无效，请检查设置');
-  if (!response.ok) throw new Error('请求失败（状态码：' + response.status + '）');
+  if (!response.ok) {
+    let detail = '';
+    try { const err = await response.json(); detail = ': ' + (err.error?.message || JSON.stringify(err)); } catch {}
+    throw new Error('请求失败（状态码：' + response.status + '）' + detail);
+  }
 
   const json = await response.json();
 
@@ -153,7 +157,7 @@ ${userContext || '暂无数据'}
       { role: 'system', content: systemPrompt },
       ...messages.slice(-20)  // 最多保留最近 20 条消息
     ],
-    max_tokens: 1000,
+    max_completion_tokens: 1000,
     temperature: 0.7
   };
 
