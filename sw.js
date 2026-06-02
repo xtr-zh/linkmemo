@@ -1,14 +1,15 @@
-const CACHE_NAME = 'linkmemo-v1';
+const CACHE_NAME = 'linkmemo-v2';
+const BASE = '/linkmemo';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/db.js',
-  '/js/ai.js',
-  '/js/app.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  BASE + '/',
+  BASE + '/index.html',
+  BASE + '/css/style.css',
+  BASE + '/js/db.js',
+  BASE + '/js/ai.js',
+  BASE + '/js/app.js',
+  BASE + '/manifest.json',
+  BASE + '/icons/icon-192.png',
+  BASE + '/icons/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
