@@ -724,7 +724,7 @@ async function renderChat() {
     container.innerHTML = state.chatMessages.map(m => {
       if (m.role === 'user') {
         return `<div class="chat-bubble user"><div class="bubble-text">${escHtml(m.text)}</div></div>`;
-      } else {
+      } else if (m.role === 'assistant') {
         let actionsHtml = '';
         if (m.actions?.length) {
           actionsHtml = m.actions.map(a => `<div class="action-done">${formatAction(a)}</div>`).join('');
@@ -768,13 +768,13 @@ async function sendChatMessage() {
     }
 
     state.chatMessages.push({
-      role: 'ai',
+      role: 'assistant',
       text: result.text || '好的，已处理！',
       actions: actionResults
     });
   } catch (e) {
     state.chatMessages.push({
-      role: 'ai',
+      role: 'assistant',
       text: '抱歉，出了点问题：' + e.message,
       actions: []
     });
