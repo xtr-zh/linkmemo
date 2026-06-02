@@ -129,35 +129,30 @@ async function chatAgent(messages, userContext) {
   const provider = AI_PROVIDERS[providerKey];
   const now = new Date().toLocaleString('zh-CN');
 
-  const systemPrompt = `你是 LinkMemo 的智能助手。你可以帮助用户管理链接收藏和待办事项。
+  const systemPrompt = `[系统指令] 你是 LinkMemo 的智能助手。当前时间：${now}。
 
-当前时间：${now}
+用户数据：${userContext || '暂无'}
 
-用户已有的数据：
-${userContext || '暂无数据'}
+可用分类：${CATEGORIES.map(c => c.icon + c.name).join(', ')}
 
-你可以执行以下操作。当需要执行操作时，在回复中用精确的 JSON 格式：
+操作格式（需要时在回复末尾附加，不要放在消息正文中）：
+[ACTION:save_link]{"url":"...","title":"...","summary":"...","category":"分类名","tags":["标签"]}[/ACTION]
+[ACTION:create_todo]{"title":"...","notes":"...","priority":"high|medium|low","dueDate":"YYYY-MM-DD"}[/ACTION]
+[ACTION:delete_link]{"id":"ID"}[/ACTION]
+[ACTION:delete_todo]{"id":"ID"}[/ACTION]
 
-1. 保存链接：[ACTION:save_link]{"url":"...","title":"...","summary":"...","category":"分类名","tags":["标签1","标签2"]}[/ACTION]
-2. 创建待办：[ACTION:create_todo]{"title":"...","notes":"...","priority":"high|medium|low","dueDate":"YYYY-MM-DD"}[/ACTION]
-3. 删除链接：[ACTION:delete_link]{"id":"链接ID"}[/ACTION]
-4. 删除待办：[ACTION:delete_todo]{"id":"待办ID"}[/ACTION]
+规则：用户提到链接自动保存；用户提到时间自动创建待办；回复简洁友好用中文；不要虚构数据。`;
 
-可选分类：${CATEGORIES.map(c => c.icon + c.name).join(', ')}
-
-规则：
-- 用户提到链接时，如果给了 URL 就自动分析保存；如果只是描述，就根据描述总结
-- 用户提到"提醒"、"明天"、"下午3点"等时间时，自动创建待办并设置截止日
-- 自然地回复用户问题，需要操作时才加 [ACTION] 标签
-- 回复简洁友好，用中文
-- 不要虚构数据，只在用户明确提供信息时才创建`;
+  // 把 system prompt 作为第一条 user 消息（不用 system role）
+  const allMessages = [
+    { role: 'user', content: systemPrompt },
+    { role: 'assistant', content: '好的，我明白了。请告诉我你想做什么？' },
+    ...messages.slice(-20)
+  ];
 
   const body = {
     model: provider.model,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...messages.slice(-20)  // 最多保留最近 20 条消息
-    ],
+    messages: allMessages,
     max_tokens: 1000,
     stream: false
   };
@@ -167,6 +162,8 @@ ${userContext || '暂无数据'}
     [provider.header]: provider.prefix + apiKey,
     ...(provider.extraHeaders || {})
   };
+
+  console.log('LinkMemo API 请求:', JSON.stringify({ url: provider.baseURL, model: provider.model, msgCount: allMessages.length, bodyMsgPreview: JSON.stringify(body.messages).slice(0, 300) }));
 
   const response = await fetch(provider.baseURL, {
     method: 'POST', headers, body: JSON.stringify(body)
