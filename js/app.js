@@ -29,6 +29,8 @@ async function init() {
   }
   await detectClipboard();
   await loadSettings();
+  // 恢复聊天历史
+  state.chatMessages = await loadChatHistory();
   await renderAll();
 }
 
@@ -782,6 +784,8 @@ async function sendChatMessage() {
 
   state.chatLoading = false;
   renderChat();
+  // 持久化聊天历史
+  saveChatHistory(state.chatMessages);
   // 刷新数据
   if (state.chatMessages.length > 2) {
     renderCategoryBar();

@@ -157,8 +157,7 @@ ${userContext || '暂无数据'}
       { role: 'system', content: systemPrompt },
       ...messages.slice(-20)  // 最多保留最近 20 条消息
     ],
-    max_completion_tokens: 1000,
-    temperature: 0.7
+    max_completion_tokens: 1000
   };
 
   const headers = {

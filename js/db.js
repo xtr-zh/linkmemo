@@ -3,7 +3,7 @@
  */
 
 const DB_NAME = 'LinkMemoDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -25,9 +25,44 @@ function openDB() {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
       }
+      if (!db.objectStoreNames.contains('chatHistory')) {
+        db.createObjectStore('chatHistory', { keyPath: 'id' });
+      }
     };
     request.onsuccess = (e) => resolve(e.target.result);
     request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+// ====== 聊天历史 ======
+
+async function saveChatHistory(messages) {
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction('chatHistory', 'readwrite');
+    const store = tx.objectStore('chatHistory');
+    store.clear(); // 清空旧记录
+    messages.forEach((m, i) => store.put({ id: i, ...m }));
+    tx.oncomplete = () => resolve();
+  });
+}
+
+async function loadChatHistory() {
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction('chatHistory', 'readonly');
+    const request = tx.objectStore('chatHistory').getAll();
+    request.onsuccess = () => resolve((request.result || []).sort((a, b) => a.id - b.id).map(m => ({ role: m.role, text: m.text, actions: m.actions || [] })));
+    request.onerror = () => resolve([]);
+  });
+}
+
+async function clearChatHistory() {
+  const db = await openDB();
+  return new Promise((resolve) => {
+    const tx = db.transaction('chatHistory', 'readwrite');
+    tx.objectStore('chatHistory').clear();
+    tx.oncomplete = () => resolve();
   });
 }
 
