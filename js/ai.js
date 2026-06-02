@@ -21,7 +21,7 @@ const AI_PROVIDERS = {
   deepseek: {
     name: 'DeepSeek',
     baseURL: 'https://api.deepseek.com/v1/chat/completions',
-    model: 'deepseek-chat',
+    model: 'deepseek-v4-flash',
     header: 'Authorization',
     prefix: 'Bearer '
   },
