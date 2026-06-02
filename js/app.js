@@ -723,16 +723,18 @@ async function renderChat() {
         </div>
       </div>`;
   } else {
-    container.innerHTML = state.chatMessages.map(m => {
-      if (m.role === 'user') {
-        return `<div class="chat-bubble user"><div class="bubble-text">${escHtml(m.text)}</div></div>`;
-      } else if (m.role === 'assistant') {
-        let actionsHtml = '';
-        if (m.actions?.length) {
-          actionsHtml = m.actions.map(a => `<div class="action-done">${formatAction(a)}</div>`).join('');
-        }
-        return `<div class="chat-bubble ai"><div class="bubble-text">${formatBubbleText(m.text)}${actionsHtml}</div></div>`;
-      }
+    container.innerHTML = state.chatMessages.map((m, i) => {
+      const bubbleClass = m.role === 'user' ? 'user' : 'ai';
+      let inner = m.role === 'user'
+        ? escHtml(m.text)
+        : formatBubbleText(m.text) + (m.actions?.length ? m.actions.map(a => `<div class="action-done">${formatAction(a)}</div>`).join('') : '');
+      return `<div class="chat-bubble ${bubbleClass}"
+                oncontextmenu="return false"
+                ontouchstart="chatLongPress(event,${i})"
+                ontouchend="cancelChatPress()"
+                ontouchmove="cancelChatPress()">
+                <div class="bubble-text">${inner}</div>
+              </div>`;
     }).join('');
     if (state.chatLoading) {
       container.innerHTML += '<div class="chat-typing" style="display:block"><div class="dot-flash"><span></span><span></span><span></span></div></div>';
@@ -872,6 +874,48 @@ function formatBubbleText(text) {
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>')
     .replace(/`([^`]+)`/g, '<code style="background:var(--gray-bg);padding:1px 5px;border-radius:4px;font-size:13px">$1</code>');
+}
+
+// ====== 聊天消息编辑/删除 ======
+let chatPressTimer;
+
+function chatLongPress(e, index) {
+  chatPressTimer = setTimeout(() => {
+    const msg = state.chatMessages[index];
+    const menu = document.getElementById('contextMenu');
+    const touch = e.touches?.[0] || e;
+    let x = touch.clientX, y = touch.clientY;
+    if (x > window.innerWidth - 180) x = window.innerWidth - 180;
+    if (y > window.innerHeight - 120) y = window.innerHeight - 120;
+
+    menu.style.cssText = `display:block;left:${x}px;top:${y}px`;
+    menu.innerHTML = `
+      <button onclick="editChatMsg(${index})">✏️ 编辑</button>
+      <button class="destructive" onclick="deleteChatMsg(${index})">🗑 删除</button>
+    `;
+    setTimeout(() => { menu.style.display = 'none'; }, 3000);
+  }, 500);
+}
+
+function cancelChatPress() { clearTimeout(chatPressTimer); }
+
+function editChatMsg(index) {
+  hideContextMenu();
+  const msg = state.chatMessages[index];
+  // 删除这条及之后的所有消息
+  state.chatMessages = state.chatMessages.slice(0, index);
+  // 把原文本填入输入框
+  document.getElementById('chatInput').value = msg.text || '';
+  saveChatHistory(state.chatMessages);
+  renderChat();
+}
+
+function deleteChatMsg(index) {
+  hideContextMenu();
+  if (!confirm(`确定删除这条消息及之后的 ${state.chatMessages.length - index} 条对话？`)) return;
+  state.chatMessages = state.chatMessages.slice(0, index);
+  saveChatHistory(state.chatMessages);
+  renderChat();
 }
 
 // ========================================================
