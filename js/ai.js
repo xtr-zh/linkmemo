@@ -21,7 +21,7 @@ const AI_PROVIDERS = {
   deepseek: {
     name: 'DeepSeek',
     baseURL: 'https://api.deepseek.com/v1/chat/completions',
-    model: 'deepseek-v4-flash',
+    model: 'deepseek-chat',
     header: 'Authorization',
     prefix: 'Bearer '
   },
@@ -64,7 +64,7 @@ async function analyzeURL(url, providerKey = 'openai') {
   const body = {
     model: provider.model,
     messages: [{ role: 'user', content: prompt }],
-    max_completion_tokens: 600,
+    max_tokens: 600,
     temperature: 0.3
   };
 
@@ -157,7 +157,7 @@ ${userContext || '暂无数据'}
       { role: 'system', content: systemPrompt },
       ...messages.slice(-20)  // 最多保留最近 20 条消息
     ],
-    max_completion_tokens: 1000
+    max_tokens: 1000
   };
 
   const headers = {
@@ -172,7 +172,9 @@ ${userContext || '暂无数据'}
 
   if (!response.ok) {
     if (response.status === 401) throw new Error('API Key 无效');
-    throw new Error('请求失败（状态码：' + response.status + '）');
+    let detail = '';
+    try { const err = await response.json(); detail = ': ' + (err.error?.message || JSON.stringify(err)); } catch {}
+    throw new Error('请求失败（状态码：' + response.status + '）' + detail);
   }
 
   const json = await response.json();
