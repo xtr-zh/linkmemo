@@ -929,15 +929,5 @@ function timeAgo(d) { if (!d) return ''; const diff = Date.now() - new Date(d).g
 function priorityIcon(p) { return p === 'high' ? '🔴' : p === 'low' ? '🟢' : '🟡'; }
 function isOverdue(dueDate, isCompleted) { if (!dueDate || isCompleted) return false; return new Date(dueDate) < new Date(); }
 
-// ====== 键盘弹起处理 ======
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', () => {
-    const app = document.querySelector('.app');
-    if (app) {
-      app.style.height = window.visualViewport.height + 'px';
-    }
-  });
-}
-
 // ====== 启动 ======
 document.addEventListener('DOMContentLoaded', init);
