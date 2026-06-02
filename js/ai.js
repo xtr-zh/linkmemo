@@ -20,7 +20,7 @@ const AI_PROVIDERS = {
   },
   deepseek: {
     name: 'DeepSeek',
-    baseURL: 'https://api.deepseek.com/v1/chat/completions',
+    baseURL: 'https://api.deepseek.com/chat/completions',
     model: 'deepseek-chat',
     header: 'Authorization',
     prefix: 'Bearer '
@@ -65,7 +65,8 @@ async function analyzeURL(url, providerKey = 'openai') {
     model: provider.model,
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 600,
-    temperature: 0.3
+    temperature: 0.3,
+    stream: false
   };
 
   const headers = {
@@ -157,7 +158,8 @@ ${userContext || '暂无数据'}
       { role: 'system', content: systemPrompt },
       ...messages.slice(-20)  // 最多保留最近 20 条消息
     ],
-    max_tokens: 1000
+    max_tokens: 1000,
+    stream: false
   };
 
   const headers = {
