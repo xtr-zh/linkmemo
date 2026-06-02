@@ -31,6 +31,15 @@ async function init() {
   await loadSettings();
   // 恢复聊天历史
   state.chatMessages = await loadChatHistory();
+  // 初始显示对话页
+  document.getElementById('page-chat').style.display = '';
+  document.getElementById('page-todo').style.display = 'none';
+  document.getElementById('page-links').style.display = 'none';
+  document.getElementById('navTitle').textContent = '对话';
+  document.getElementById('fab').style.display = 'none';
+  // 确保 tabbar 激活状态正确
+  document.querySelectorAll('#tabbar .tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('#tabbar [data-page="chat"]').classList.add('active');
   await renderAll();
 }
 
