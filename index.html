@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="LinkMemo">
+  <meta name="theme-color" content="#007aff">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>LinkMemo</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ====== 导航栏 ====== -->
+  <div class="navbar" id="navbar">
+    <h1 id="navTitle">待办事项</h1>
+    <button class="btn-icon" id="navRightBtn" onclick="showSettings()">⚙️</button>
+  </div>
+
+  <!-- ====== 内容区域 ====== -->
+  <div class="content" id="content">
+
+    <!-- === 待办页 === -->
+    <div id="page-todo">
+      <div class="segmented" id="todoFilter">
+        <button class="active" data-filter="all">全部</button>
+        <button data-filter="active">进行中</button>
+        <button data-filter="completed">已完成</button>
+      </div>
+      <div id="todoList"></div>
+      <div class="empty-state" id="todoEmpty" style="display:none">
+        <div class="empty-icon">✅</div>
+        <h3>暂无待办事项</h3>
+        <p>点击右下角 + 添加新待办</p>
+      </div>
+    </div>
+
+    <!-- === 链接页 === -->
+    <div id="page-links" style="display:none">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="linkSearch" placeholder="搜索链接标题、摘要..." oninput="renderLinks()">
+      </div>
+      <div class="category-bar" id="categoryBar"></div>
+      <div class="sort-bar">
+        <select id="linkSort" onchange="renderLinks()">
+          <option value="date">时间</option>
+          <option value="title">标题</option>
+          <option value="favorite">收藏</option>
+        </select>
+      </div>
+      <div id="clipboardBanner" class="clipboard-banner" style="display:none">
+        <span>📋 检测到剪贴板链接</span>
+        <button onclick="useClipboardURL()">使用</button>
+      </div>
+      <div id="linkList"></div>
+      <div class="empty-state" id="linkEmpty" style="display:none">
+        <div class="empty-icon">🔖</div>
+        <h3>暂无收藏链接</h3>
+        <p>点击右下角 + 添加链接</p>
+      </div>
+    </div>
+
+    <!-- === 设置页 === -->
+    <div id="page-settings" style="display:none">
+      <div class="settings-section">
+        <h3>🤖 AI 模型</h3>
+        <div class="settings-card">
+          <div class="settings-row">
+            <span class="row-label">当前模型</span>
+            <select id="settingProvider" onchange="onProviderChange()">
+              <option value="openai">OpenAI</option>
+              <option value="claude">Claude</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="qwen">通义千问</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>🔑 API Key</h3>
+        <div class="settings-card" id="apiKeysCard"></div>
+      </div>
+      <div class="settings-section">
+        <h3>🏷️ 自定义分类</h3>
+        <div class="settings-card" id="customCatCard"></div>
+      </div>
+      <div class="settings-section">
+        <h3>📤 数据</h3>
+        <div class="settings-card">
+          <div class="settings-row" onclick="exportData()" style="cursor:pointer">
+            <span class="row-label">导出所有数据 (JSON)</span>
+            <span style="color:var(--blue)">📤</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ====== FAB 按钮 ====== -->
+  <button class="fab" id="fab" onclick="openAddSheet()">+</button>
+
+  <!-- ====== 底部 Tab 栏 ====== -->
+  <div class="tabbar" id="tabbar">
+    <button class="tab active" data-page="todo" onclick="switchTab('todo')">
+      <span class="tab-icon">✅</span><span>待办事项</span>
+    </button>
+    <button class="tab" data-page="links" onclick="switchTab('links')">
+      <span class="tab-icon">🔖</span><span>链接收藏</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- ====== Toast ====== -->
+<div id="toast"></div>
+
+<!-- ====== 上下文菜单 ====== -->
+<div class="context-menu" id="contextMenu" style="display:none"></div>
+
+<!-- ====== Sheet 弹窗: 添加/编辑待办 ====== -->
+<div class="sheet-overlay" id="todoSheetOverlay" style="display:none" onclick="if(event.target===this)closeTodoSheet()">
+  <div class="sheet" style="padding-bottom:env(safe-area-inset-bottom,0px)">
+    <div class="sheet-header">
+      <button class="btn-close" onclick="closeTodoSheet()">取消</button>
+      <h3 id="todoSheetTitle">新建待办</h3>
+      <button class="btn-close" onclick="saveTodoForm()" id="todoSheetSave">保存</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label>标题 *</label>
+        <input type="text" id="todoTitle" placeholder="做什么？">
+      </div>
+      <div class="form-group">
+        <label>备注</label>
+        <textarea id="todoNotes" placeholder="补充说明（可选）"></textarea>
+      </div>
+      <div class="form-group">
+        <label>优先级</label>
+        <div style="display:flex;gap:8px" id="priorityPicker">
+          <button class="category-chip" data-p="high" onclick="selectPriority('high',this)">🔴 高</button>
+          <button class="category-chip active" data-p="medium" onclick="selectPriority('medium',this)">🟡 中</button>
+          <button class="category-chip" data-p="low" onclick="selectPriority('low',this)">🟢 低</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="hasDueDate" onchange="toggleDueDate()">
+          设置截止日期
+        </label>
+        <input type="date" id="todoDueDate" style="display:none;margin-top:6px">
+      </div>
+      <div class="form-group" id="todoLinkGroup">
+        <label>关联链接</label>
+        <div id="todoLinkedItem"></div>
+        <button class="btn-secondary" onclick="openLinkPicker()" id="linkPickerBtn">选择收藏的链接</button>
+      </div>
+      <input type="hidden" id="todoEditId">
+    </div>
+  </div>
+</div>
+
+<!-- ====== Sheet 弹窗: 添加/编辑链接 ====== -->
+<div class="sheet-overlay" id="linkSheetOverlay" style="display:none" onclick="if(event.target===this)closeLinkSheet()">
+  <div class="sheet" style="padding-bottom:env(safe-area-inset-bottom,0px)">
+    <div class="sheet-header">
+      <button class="btn-close" onclick="closeLinkSheet()">取消</button>
+      <h3 id="linkSheetTitle">添加链接</h3>
+      <button class="btn-close" style="display:none" id="linkSheetSave" onclick="saveLinkForm()">保存</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label>粘贴链接</label>
+        <input type="url" id="linkURL" placeholder="https://...">
+      </div>
+      <div id="linkModeChoose">
+        <button class="btn-primary" onclick="startAIAnalysis()">🤖 AI 自动分析</button>
+        <button class="btn-secondary" onclick="showManualForm()">✍️ 手动填写</button>
+      </div>
+      <div id="linkClipboardHint" style="display:none;margin-top:8px;font-size:12px;color:var(--text-secondary);text-align:center">
+        📋 检测到剪贴板链接 · <a href="#" onclick="useClipboardInSheet();return false">使用</a>
+      </div>
+      <div id="linkAILoading" style="display:none">
+        <div class="ai-loading">
+          <div class="spinner"></div>
+          <span>AI 正在分析链接...</span>
+        </div>
+      </div>
+      <div id="linkFormFields" style="display:none">
+        <div class="form-group">
+          <label>标题</label>
+          <input type="text" id="linkTitle" placeholder="标题">
+        </div>
+        <div class="form-group">
+          <label>摘要</label>
+          <textarea id="linkSummary" placeholder="摘要"></textarea>
+        </div>
+        <div class="form-group">
+          <label>分类</label>
+          <div class="category-bar" id="linkCategoryPicker" style="padding:0;flex-wrap:wrap"></div>
+        </div>
+        <div class="form-group">
+          <label>标签（逗号分隔）</label>
+          <input type="text" id="linkTags" placeholder="例如: SwiftUI, 性能优化">
+        </div>
+        <p id="linkAIHint" style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;display:none">✨ 由 AI 生成，可手动修改</p>
+        <button class="btn-primary" onclick="saveLinkForm()">💾 保存链接</button>
+      </div>
+      <input type="hidden" id="linkEditId">
+    </div>
+  </div>
+</div>
+
+<!-- ====== Sheet 弹窗: 链接选择器 ====== -->
+<div class="sheet-overlay" id="linkPickerOverlay" style="display:none" onclick="if(event.target===this)closeLinkPicker()">
+  <div class="sheet" style="padding-bottom:env(safe-area-inset-bottom,0px)">
+    <div class="sheet-header">
+      <button class="btn-close" onclick="closeLinkPicker()">取消</button>
+      <h3>选择链接</h3>
+      <div></div>
+    </div>
+    <div class="sheet-body" id="linkPickerList"></div>
+  </div>
+</div>
+
+<!-- ====== Sheet 弹窗: 链接详情 ====== -->
+<div class="sheet-overlay" id="linkDetailOverlay" style="display:none" onclick="if(event.target===this)closeLinkDetail()">
+  <div class="sheet" style="padding-bottom:env(safe-area-inset-bottom,0px);max-height:90vh">
+    <div class="sheet-header">
+      <button class="btn-close" onclick="closeLinkDetail()">关闭</button>
+      <h3>链接详情</h3>
+      <button class="btn-close" id="detailEditBtn" onclick="editLinkFromDetail()">编辑</button>
+    </div>
+    <div class="sheet-body" id="linkDetailContent"></div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
