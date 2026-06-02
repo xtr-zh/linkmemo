@@ -113,3 +113,90 @@ async function analyzeURL(url, providerKey = 'openai') {
 function getActiveProvider() {
   return getSetting('ai_provider').then(p => p || 'openai');
 }
+
+// ====== 对话 Agent ======
+
+async function chatAgent(messages, userContext) {
+  const providerKey = await getActiveProvider();
+  const apiKey = await getSetting('api_key_' + providerKey);
+  if (!apiKey) throw new Error('请先在设置中配置 AI API Key');
+
+  const provider = AI_PROVIDERS[providerKey];
+  const now = new Date().toLocaleString('zh-CN');
+
+  const systemPrompt = `你是 LinkMemo 的智能助手。你可以帮助用户管理链接收藏和待办事项。
+
+当前时间：${now}
+
+用户已有的数据：
+${userContext || '暂无数据'}
+
+你可以执行以下操作。当需要执行操作时，在回复中用精确的 JSON 格式：
+
+1. 保存链接：[ACTION:save_link]{"url":"...","title":"...","summary":"...","category":"分类名","tags":["标签1","标签2"]}[/ACTION]
+2. 创建待办：[ACTION:create_todo]{"title":"...","notes":"...","priority":"high|medium|low","dueDate":"YYYY-MM-DD"}[/ACTION]
+3. 删除链接：[ACTION:delete_link]{"id":"链接ID"}[/ACTION]
+4. 删除待办：[ACTION:delete_todo]{"id":"待办ID"}[/ACTION]
+
+可选分类：${CATEGORIES.map(c => c.icon + c.name).join(', ')}
+
+规则：
+- 用户提到链接时，如果给了 URL 就自动分析保存；如果只是描述，就根据描述总结
+- 用户提到"提醒"、"明天"、"下午3点"等时间时，自动创建待办并设置截止日
+- 自然地回复用户问题，需要操作时才加 [ACTION] 标签
+- 回复简洁友好，用中文
+- 不要虚构数据，只在用户明确提供信息时才创建`;
+
+  const body = {
+    model: provider.model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages.slice(-20)  // 最多保留最近 20 条消息
+    ],
+    max_tokens: 1000,
+    temperature: 0.7
+  };
+
+  const headers = {
+    'Content-Type': 'application/json',
+    [provider.header]: provider.prefix + apiKey,
+    ...(provider.extraHeaders || {})
+  };
+
+  const response = await fetch(provider.baseURL, {
+    method: 'POST', headers, body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) throw new Error('API Key 无效');
+    throw new Error('请求失败（状态码：' + response.status + '）');
+  }
+
+  const json = await response.json();
+  let content;
+  if (json.choices?.[0]?.message?.content) content = json.choices[0].message.content;
+  else if (json.content?.[0]?.text) content = json.content[0].text;
+  else if (json.output?.choices?.[0]?.message?.content) content = json.output.choices[0].message.content;
+  else throw new Error('无法解析 AI 返回');
+
+  return parseAgentResponse(content);
+}
+
+function parseAgentResponse(text) {
+  const actions = [];
+  const actionRegex = /\[ACTION:(\w+)\]([\s\S]*?)\[\/ACTION\]/g;
+  let match;
+  let cleanText = text;
+
+  while ((match = actionRegex.exec(text)) !== null) {
+    try {
+      const data = JSON.parse(match[2].trim());
+      actions.push({ type: match[1], data });
+    } catch {}
+  }
+
+  // 移除 action 标签，保留纯文本
+  cleanText = cleanText.replace(actionRegex, '').trim();
+
+  return { text: cleanText, actions };
+}

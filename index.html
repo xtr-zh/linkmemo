@@ -67,6 +67,16 @@
     </div>
 
     <!-- === 设置页 === -->
+    <!-- === 对话页 === -->
+    <div id="page-chat" style="display:none">
+      <div id="chatMessages"></div>
+      <div class="chat-input-bar">
+        <input type="text" id="chatInput" placeholder="发消息，比如：保存链接、创建待办..."
+               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}">
+        <button onclick="sendChatMessage()" id="chatSendBtn">发送</button>
+      </div>
+    </div>
+
     <div id="page-settings" style="display:none">
       <div class="settings-section">
         <h3>🤖 AI 模型</h3>
@@ -108,7 +118,10 @@
 
   <!-- ====== 底部 Tab 栏 ====== -->
   <div class="tabbar" id="tabbar">
-    <button class="tab active" data-page="todo" onclick="switchTab('todo')">
+    <button class="tab active" data-page="chat" onclick="switchTab('chat')">
+      <span class="tab-icon">💬</span><span>对话</span>
+    </button>
+    <button class="tab" data-page="todo" onclick="switchTab('todo')">
       <span class="tab-icon">✅</span><span>待办事项</span>
     </button>
     <button class="tab" data-page="links" onclick="switchTab('links')">

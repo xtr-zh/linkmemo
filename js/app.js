@@ -4,20 +4,22 @@
 
 // ====== 全局状态 ======
 let state = {
-  page: 'todo',            // 'todo' | 'links' | 'settings'
-  todoFilter: 'all',       // 'all' | 'active' | 'completed'
-  todoPriority: 'medium',  // 'high' | 'medium' | 'low'
+  page: 'chat',             // 'chat' | 'todo' | 'links' | 'settings'
+  todoFilter: 'all',        // 'all' | 'active' | 'completed'
+  todoPriority: 'medium',   // 'high' | 'medium' | 'low'
   todoEditId: null,
   todoLinkedId: null,
   todoLinkedTitle: null,
-  linkCategory: null,      // selected category name (null = all)
-  linkSort: 'date',        // 'date' | 'title' | 'favorite'
+  linkCategory: null,       // selected category name (null = all)
+  linkSort: 'date',         // 'date' | 'title' | 'favorite'
   linkEditId: null,
-  linkMode: null,          // 'ai' | 'manual' | null
+  linkMode: null,           // 'ai' | 'manual' | null
   detailLinkId: null,
   clipboardURL: null,
   contextTarget: null,
-  contextType: null        // 'link' | 'todo'
+  contextType: null,        // 'link' | 'todo'
+  chatMessages: [],         // [{role, text, actions}]
+  chatLoading: false
 };
 
 // ====== 初始化 ======
@@ -36,17 +38,19 @@ function switchTab(page) {
   document.querySelectorAll('#tabbar .tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`#tabbar [data-page="${page}"]`).classList.add('active');
 
+  document.getElementById('page-chat').style.display = page === 'chat' ? '' : 'none';
   document.getElementById('page-todo').style.display = page === 'todo' ? '' : 'none';
   document.getElementById('page-links').style.display = page === 'links' ? '' : 'none';
   document.getElementById('page-settings').style.display = page === 'settings' ? '' : 'none';
 
   const fab = document.getElementById('fab');
-  fab.style.display = page === 'settings' ? 'none' : '';
+  fab.style.display = (page === 'settings' || page === 'chat') ? 'none' : '';
 
-  document.getElementById('navTitle').textContent = page === 'todo' ? '待办事项' : page === 'links' ? '链接收藏' : '设置';
+  document.getElementById('navTitle').textContent = page === 'chat' ? '对话' : page === 'todo' ? '待办事项' : page === 'links' ? '链接收藏' : '设置';
   document.getElementById('navRightBtn').style.display = page === 'settings' ? 'none' : '';
   document.getElementById('navRightBtn').onclick = () => showSettings();
 
+  if (page === 'chat') renderChat();
   if (page === 'todo') renderTodos();
   if (page === 'links') { renderCategoryBar(); renderLinks(); }
 }
@@ -696,6 +700,175 @@ async function ctxToggleFav() { const l = await getLink(state.contextTarget); if
 async function ctxDeleteLink() { if (confirm('确定删除？')) { await deleteLink(state.contextTarget); renderCategoryBar(); renderLinks(); toast('已删除'); } hideContextMenu(); }
 async function ctxEditTodo() { await openEditTodo(state.contextTarget); hideContextMenu(); }
 async function ctxDeleteTodo() { if (confirm('确定删除？')) { await deleteTodo(state.contextTarget); renderTodos(); toast('已删除'); } hideContextMenu(); }
+
+// ========================================================
+//  对话 Agent
+// ========================================================
+
+async function renderChat() {
+  const container = document.getElementById('chatMessages');
+  if (state.chatMessages.length === 0) {
+    container.innerHTML = `
+      <div class="chat-welcome">
+        <div class="welcome-icon">💬</div>
+        <h3>你好，我是 LinkMemo 助手</h3>
+        <p>你可以对我这样说：</p>
+        <div class="chat-suggestions">
+          <span class="chat-suggestion" onclick="quickChat(this.textContent)">保存这个链接 https://example.com 这是一篇好文章</span>
+          <span class="chat-suggestion" onclick="quickChat(this.textContent)">帮我创建一个待办：明天买牛奶</span>
+          <span class="chat-suggestion" onclick="quickChat(this.textContent)">我收藏了哪些技术文章？</span>
+          <span class="chat-suggestion" onclick="quickChat(this.textContent)">把没完成的待办列出来</span>
+        </div>
+      </div>`;
+  } else {
+    container.innerHTML = state.chatMessages.map(m => {
+      if (m.role === 'user') {
+        return `<div class="chat-bubble user"><div class="bubble-text">${escHtml(m.text)}</div></div>`;
+      } else {
+        let actionsHtml = '';
+        if (m.actions?.length) {
+          actionsHtml = m.actions.map(a => `<div class="action-done">${formatAction(a)}</div>`).join('');
+        }
+        return `<div class="chat-bubble ai"><div class="bubble-text">${formatBubbleText(m.text)}${actionsHtml}</div></div>`;
+      }
+    }).join('');
+    if (state.chatLoading) {
+      container.innerHTML += '<div class="chat-typing" style="display:block"><div class="dot-flash"><span></span><span></span><span></span></div></div>';
+    }
+  }
+  // 滚动到底部
+  setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
+}
+
+function quickChat(text) {
+  document.getElementById('chatInput').value = text;
+  sendChatMessage();
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text || state.chatLoading) return;
+
+  input.value = '';
+  state.chatMessages.push({ role: 'user', text, actions: [] });
+  state.chatLoading = true;
+  renderChat();
+
+  try {
+    const context = await buildContext();
+    const messages = state.chatMessages.map(m => ({ role: m.role, content: m.text }));
+    const result = await chatAgent(messages, context);
+
+    // 执行 actions
+    const actionResults = [];
+    for (const action of result.actions) {
+      const done = await executeAction(action);
+      if (done) actionResults.push(done);
+    }
+
+    state.chatMessages.push({
+      role: 'ai',
+      text: result.text || '好的，已处理！',
+      actions: actionResults
+    });
+  } catch (e) {
+    state.chatMessages.push({
+      role: 'ai',
+      text: '抱歉，出了点问题：' + e.message,
+      actions: []
+    });
+  }
+
+  state.chatLoading = false;
+  renderChat();
+  // 刷新数据
+  if (state.chatMessages.length > 2) {
+    renderCategoryBar();
+    renderTodos();
+  }
+}
+
+async function buildContext() {
+  const [links, todos] = await Promise.all([getAllLinks(), getAllTodos()]);
+  let ctx = '';
+  if (links.length) {
+    ctx += '📎 已收藏的链接：\n';
+    links.slice(0, 20).forEach(l => {
+      ctx += `- [${l.id}] ${l.title} (${l.categoryName}) URL:${l.url}\n`;
+    });
+  }
+  if (todos.length) {
+    const active = todos.filter(t => !t.isCompleted);
+    if (active.length) {
+      ctx += '\n📋 进行中的待办：\n';
+      active.forEach(t => {
+        ctx += `- [${t.id}] ${t.title} | 优先级:${t.priority} ${t.dueDate ? '| 截止:' + t.dueDate : ''}\n`;
+      });
+    }
+  }
+  return ctx || '暂无数据';
+}
+
+async function executeAction(action) {
+  const { type, data } = action;
+  try {
+    switch (type) {
+      case 'save_link': {
+        const cat = CATEGORIES.find(c => c.name === data.category) || CATEGORIES[7];
+        const link = {
+          id: generateId(),
+          url: data.url || '',
+          title: data.title || '未命名',
+          summary: data.summary || '',
+          categoryName: cat.name,
+          categoryIcon: cat.icon,
+          tags: data.tags || [],
+          aiGenerated: true,
+          isFavorite: false,
+          createdAt: new Date().toISOString()
+        };
+        await saveLink(link);
+        return { type, label: '已保存链接：' + link.title };
+      }
+      case 'create_todo': {
+        const todo = {
+          id: generateId(),
+          title: data.title || '未命名待办',
+          notes: data.notes || '',
+          priority: data.priority || 'medium',
+          dueDate: data.dueDate || null,
+          isCompleted: false,
+          sortOrder: Date.now(),
+          createdAt: new Date().toISOString()
+        };
+        await saveTodo(todo);
+        return { type, label: '已创建待办：' + todo.title };
+      }
+      case 'delete_link':
+        await deleteLink(data.id);
+        return { type, label: '已删除链接' };
+      case 'delete_todo':
+        await deleteTodo(data.id);
+        return { type, label: '已删除待办' };
+      default:
+        return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
+function formatAction(a) {
+  return a.label || (a.type === 'save_link' ? '已保存链接' : a.type === 'create_todo' ? '已创建待办' : '已完成');
+}
+
+function formatBubbleText(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>')
+    .replace(/`([^`]+)`/g, '<code style="background:var(--gray-bg);padding:1px 5px;border-radius:4px;font-size:13px">$1</code>');
+}
 
 // ========================================================
 //  工具函数
