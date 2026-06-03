@@ -1,4 +1,4 @@
-const CACHE_NAME = 'linkmemo-v3';
+const CACHE_NAME = 'linkmemo-v4';
 const BASE = '/linkmemo';
 const ASSETS = [
   BASE + '/',

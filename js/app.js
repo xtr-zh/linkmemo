@@ -266,9 +266,9 @@ function toggleDueDate() {
 function updateLinkedItemDisplay() {
   const el = document.getElementById('todoLinkedItem');
   if (state.todoLinkedId) {
-    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--gray-bg);border-radius:8px;font-size:14px">
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface);border-radius:4px;font-size:14px">
       <span>🔗 ${escHtml(state.todoLinkedTitle || '')}</span>
-      <button onclick="removeLinkedItem()" style="margin-left:auto;border:none;background:none;color:var(--red);cursor:pointer">✕</button>
+      <button onclick="removeLinkedItem()" style="margin-left:auto;border:none;background:none;color:var(--error);cursor:pointer">✕</button>
     </div>`;
     document.getElementById('linkPickerBtn').style.display = 'none';
   } else {
@@ -287,12 +287,12 @@ function removeLinkedItem() {
 async function openLinkPicker() {
   const links = await getAllLinks();
   document.getElementById('linkPickerList').innerHTML = links.map(l => `
-    <div style="display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--separator);cursor:pointer"
+    <div style="display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--border-subtle);cursor:pointer"
          onclick="selectLinkForTodo('${l.id}','${escAttr(l.title)}')">
       <span style="font-size:20px">${l.categoryIcon || '📌'}</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:500;text-overflow:ellipsis;overflow:hidden;white-space:nowrap">${escHtml(l.title)}</div>
-        <div style="font-size:11px;color:var(--text-secondary);text-overflow:ellipsis;overflow:hidden;white-space:nowrap">${escHtml(l.url)}</div>
+        <div style="font-size:11px;color:var(--ink-secondary);text-overflow:ellipsis;overflow:hidden;white-space:nowrap">${escHtml(l.url)}</div>
       </div>
     </div>
   `).join('');
@@ -496,16 +496,16 @@ async function openLinkDetail(id) {
 
   document.getElementById('linkDetailContent').innerHTML = `
     <h2 style="font-size:20px;margin-bottom:8px">${escHtml(link.title)}</h2>
-    <a href="${escAttr(link.url)}" target="_blank" style="font-size:13px;color:var(--blue);word-break:break-all">${escHtml(link.url)}</a>
+    <a href="${escAttr(link.url)}" target="_blank" style="font-size:13px;color:var(--primary);word-break:break-all">${escHtml(link.url)}</a>
     <div style="margin:12px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
-      <span style="font-size:12px;padding:3px 10px;background:var(--blue-light);color:var(--blue);border-radius:8px">${link.categoryIcon} ${link.categoryName}</span>
-      <span style="font-size:12px;color:var(--text-secondary)">${formatDate(link.createdAt)}</span>
-      ${link.aiGenerated ? '<span style="font-size:11px;padding:2px 6px;background:#f3e8ff;color:var(--purple);border-radius:4px">AI 生成</span>' : ''}
+      <span style="font-size:12px;padding:3px 10px;background:var(--primary-muted);color:var(--primary);border-radius:8px">${link.categoryIcon} ${link.categoryName}</span>
+      <span style="font-size:12px;color:var(--ink-secondary)">${formatDate(link.createdAt)}</span>
+      ${link.aiGenerated ? '<span style="font-size:11px;padding:2px 6px;background:var(--info-bg);color:var(--info);border-radius:4px">AI 生成</span>' : ''}
     </div>
-    ${link.tags?.length ? `<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:4px">${link.tags.map(t => `<span style="font-size:11px;padding:3px 8px;background:var(--gray-bg);border-radius:6px">#${escHtml(t)}</span>`).join('')}</div>` : ''}
-    <hr style="border:none;border-top:1px solid var(--separator);margin:12px 0">
+    ${link.tags?.length ? `<div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:4px">${link.tags.map(t => `<span style="font-size:11px;padding:3px 8px;background:var(--surface);border-radius:6px">#${escHtml(t)}</span>`).join('')}</div>` : ''}
+    <hr style="border:none;border-top:1px solid var(--border-subtle);margin:12px 0">
     <h4 style="margin-bottom:6px">摘要</h4>
-    <p style="font-size:14px;color:var(--text-secondary);line-height:1.6">${escHtml(link.summary || '暂无摘要')}</p>
+    <p style="font-size:14px;color:var(--ink-secondary);line-height:1.6">${escHtml(link.summary || '暂无摘要')}</p>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
       <button class="btn-primary" onclick="openURL('${escAttr(link.url)}')">🌐 在浏览器中打开</button>
       <button class="btn-secondary" onclick="linkToTodo('${link.id}')">📋 转为待办事项</button>
@@ -605,14 +605,14 @@ async function renderCustomCategories() {
   const custom = await getSetting('customCategories');
   const cats = custom || [];
   document.getElementById('customCatCard').innerHTML = cats.map((c, i) =>
-    `<div class="settings-row"><span>${c.icon} ${c.name}</span><button onclick="deleteCustomCat(${i})" style="border:none;background:none;color:var(--red);cursor:pointer">删除</button></div>`
+    `<div class="settings-row"><span>${c.icon} ${c.name}</span><button onclick="deleteCustomCat(${i})" style="border:none;background:none;color:var(--error);cursor:pointer">删除</button></div>`
   ).join('') + `
     <div class="settings-row">
       <select id="newCatIcon">
         ${['💻','📺','📖','🛒','🔧','📰','🎵','📌','🎮','🏃','✈️','🍔','💡','❤️','🎓','💼'].map(i => `<option>${i}</option>`).join('')}
       </select>
       <input type="text" id="newCatName" placeholder="分类名称" style="flex:1">
-      <button onclick="addCustomCat()" style="border:none;background:var(--blue);color:white;padding:6px 12px;border-radius:6px;cursor:pointer">添加</button>
+      <button onclick="addCustomCat()" style="border:none;background:var(--primary);color:var(--ink-on-primary);padding:6px 12px;border-radius:4px;cursor:pointer">添加</button>
     </div>`;
 }
 
@@ -882,7 +882,7 @@ function formatBubbleText(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br>')
-    .replace(/`([^`]+)`/g, '<code style="background:var(--gray-bg);padding:1px 5px;border-radius:4px;font-size:13px">$1</code>');
+    .replace(/`([^`]+)`/g, '<code style="background:var(--surface);padding:1px 5px;border-radius:4px;font-size:13px">$1</code>');
 }
 
 // ====== 聊天消息编辑/删除 ======

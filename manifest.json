@@ -5,8 +5,8 @@
   "start_url": "/linkmemo/",
   "scope": "/linkmemo/",
   "display": "standalone",
-  "background_color": "#f2f2f7",
-  "theme_color": "#007aff",
+  "background_color": "#141414",
+  "theme_color": "#141414",
   "orientation": "portrait",
   "icons": [
     {

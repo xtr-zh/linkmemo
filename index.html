@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="LinkMemo">
-  <meta name="theme-color" content="#007aff">
+  <meta name="theme-color" content="#141414">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <title>LinkMemo</title>
@@ -105,7 +105,7 @@
         <div class="settings-card">
           <div class="settings-row" onclick="exportData()" style="cursor:pointer">
             <span class="row-label">导出所有数据 (JSON)</span>
-            <span style="color:var(--blue)">📤</span>
+            <span style="color:var(--primary)">📤</span>
           </div>
         </div>
       </div>
@@ -196,7 +196,7 @@
         <button class="btn-primary" onclick="startAIAnalysis()">🤖 AI 自动分析</button>
         <button class="btn-secondary" onclick="showManualForm()">✍️ 手动填写</button>
       </div>
-      <div id="linkClipboardHint" style="display:none;margin-top:8px;font-size:12px;color:var(--text-secondary);text-align:center">
+      <div id="linkClipboardHint" style="display:none;margin-top:8px;font-size:12px;color:var(--ink-secondary);text-align:center">
         📋 检测到剪贴板链接 · <a href="#" onclick="useClipboardInSheet();return false">使用</a>
       </div>
       <div id="linkAILoading" style="display:none">
@@ -222,7 +222,7 @@
           <label>标签（逗号分隔）</label>
           <input type="text" id="linkTags" placeholder="例如: SwiftUI, 性能优化">
         </div>
-        <p id="linkAIHint" style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;display:none">✨ 由 AI 生成，可手动修改</p>
+        <p id="linkAIHint" style="font-size:11px;color:var(--ink-secondary);margin-bottom:8px;display:none">✨ 由 AI 生成，可手动修改</p>
         <button class="btn-primary" onclick="saveLinkForm()">💾 保存链接</button>
       </div>
       <input type="hidden" id="linkEditId">
