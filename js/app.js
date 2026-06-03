@@ -154,7 +154,7 @@ async function renderTodos() {
             <div class="item-meta">
               <span class="todo-priority">${priorityIcon(t.priority)}</span>
               ${t.dueDate ? `<span class="todo-due ${isOverdue(t.dueDate, t.isCompleted) ? 'overdue' : ''}">📅 ${formatDate(t.dueDate)}</span>` : ''}
-              ${t.relatedLinkTitle ? `<span>🔗 ${escHtml(t.relatedLinkTitle)}</span>` : ''}
+              ${t.relatedLinkTitle ? `<span>${ICONS.link} ${escHtml(t.relatedLinkTitle)}</span>` : ''}
             </div>
           </div>
         </div>
@@ -267,7 +267,7 @@ function updateLinkedItemDisplay() {
   const el = document.getElementById('todoLinkedItem');
   if (state.todoLinkedId) {
     el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface);border-radius:4px;font-size:14px">
-      <span>🔗 ${escHtml(state.todoLinkedTitle || '')}</span>
+      ${ICONS.link} <span>${escHtml(state.todoLinkedTitle || '')}</span>
       <button onclick="removeLinkedItem()" style="margin-left:auto;border:none;background:none;color:var(--error);cursor:pointer">✕</button>
     </div>`;
     document.getElementById('linkPickerBtn').style.display = 'none';
@@ -289,7 +289,7 @@ async function openLinkPicker() {
   document.getElementById('linkPickerList').innerHTML = links.map(l => `
     <div style="display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--border-subtle);cursor:pointer"
          onclick="selectLinkForTodo('${l.id}','${escAttr(l.title)}')">
-      <span style="font-size:20px">${l.categoryIcon || '📌'}</span>
+      <span style="font-size:20px">${l.categoryIcon || ICONS.category}</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:500;text-overflow:ellipsis;overflow:hidden;white-space:nowrap">${escHtml(l.title)}</div>
         <div style="font-size:11px;color:var(--ink-secondary);text-overflow:ellipsis;overflow:hidden;white-space:nowrap">${escHtml(l.url)}</div>
@@ -363,14 +363,14 @@ async function renderLinks() {
              onclick="openLinkDetail('${l.id}')"
              oncontextmenu="return false"
              ontouchstart="startLongPress(event,'link','${l.id}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()">
-          <div class="item-icon">${l.categoryIcon || '📌'}</div>
+          <div class="item-icon">${l.categoryIcon || ICONS.category}</div>
           <div class="item-body">
             <div class="item-title">${escHtml(l.title || l.url)}</div>
             ${l.summary ? `<div class="item-subtitle">${escHtml(l.summary)}</div>` : ''}
             <div class="item-meta">
               <span class="item-category">${l.categoryName || '其他'}</span>
               <span>${timeAgo(l.createdAt)}</span>
-              ${l.isFavorite ? '<span class="item-fav">⭐</span>' : ''}
+              ${l.isFavorite ? '<span class="item-fav">' + ICONS.star + '</span>' : ''}
               ${l.aiGenerated ? '<span class="item-ai">AI</span>' : ''}
             </div>
             ${l.tags?.length ? `<div class="item-meta">${l.tags.map(t => `<span>#${escHtml(t)}</span>`).join(' ')}</div>` : ''}
@@ -507,10 +507,10 @@ async function openLinkDetail(id) {
     <h4 style="margin-bottom:6px">摘要</h4>
     <p style="font-size:14px;color:var(--ink-secondary);line-height:1.6">${escHtml(link.summary || '暂无摘要')}</p>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
-      <button class="btn-primary" onclick="openURL('${escAttr(link.url)}')">🌐 在浏览器中打开</button>
-      <button class="btn-secondary" onclick="linkToTodo('${link.id}')">📋 转为待办事项</button>
-      <button class="btn-secondary" onclick="shareLink('${escAttr(link.title)}','${escAttr(link.url)}')">📤 分享</button>
-      <button class="btn-danger" onclick="deleteLinkFromDetail('${link.id}')">🗑 删除</button>
+      <button class="btn-primary" onclick="openURL('${escAttr(link.url)}')">${ICONS.external} 在浏览器中打开</button>
+      <button class="btn-secondary" onclick="linkToTodo('${link.id}')">${ICONS.todo} 转为待办事项</button>
+      <button class="btn-secondary" onclick="shareLink('${escAttr(link.title)}','${escAttr(link.url)}')">${ICONS.share} 分享</button>
+      <button class="btn-danger" onclick="deleteLinkFromDetail('${link.id}')">${ICONS.trash} 删除</button>
     </div>
   `;
   document.getElementById('detailEditBtn').onclick = () => { closeLinkDetail(); openLinkForm(link); };
@@ -682,16 +682,16 @@ function showContextMenu(e, type, id) {
 
   if (type === 'link') {
     menu.innerHTML = `
-      <button onclick="ctxShareLink()">📤 分享</button>
-      <button onclick="ctxLinkToTodo()">📋 转为待办</button>
-      <button onclick="ctxCopyLink()">📋 复制链接</button>
-      <button onclick="ctxToggleFav()">⭐ 收藏/取消</button>
-      <button class="destructive" onclick="ctxDeleteLink()">🗑 删除</button>
+      <button onclick="ctxShareLink()">${ICONS.share} 分享</button>
+      <button onclick="ctxLinkToTodo()">${ICONS.todo} 转为待办</button>
+      <button onclick="ctxCopyLink()">${ICONS.copy} 复制链接</button>
+      <button onclick="ctxToggleFav()">${ICONS.starOutline} 收藏/取消</button>
+      <button class="destructive" onclick="ctxDeleteLink()">${ICONS.trash} 删除</button>
     `;
   } else if (type === 'todo') {
     menu.innerHTML = `
-      <button onclick="ctxEditTodo()">✏️ 编辑</button>
-      <button class="destructive" onclick="ctxDeleteTodo()">🗑 删除</button>
+      <button onclick="ctxEditTodo()">${ICONS.edit} 编辑</button>
+      <button class="destructive" onclick="ctxDeleteTodo()">${ICONS.trash} 删除</button>
     `;
   }
 
@@ -721,7 +721,7 @@ async function renderChat() {
   if (state.chatMessages.length === 0) {
     container.innerHTML = `
       <div class="chat-welcome">
-        <div class="welcome-icon">💬</div>
+        <div class="welcome-icon">${ICONS.greeting}</div>
         <h3>你好，我是 LinkMemo 助手</h3>
         <p>你可以对我这样说：</p>
         <div class="chat-suggestions">
@@ -899,8 +899,8 @@ function chatLongPress(e, index) {
 
     menu.style.cssText = `display:block;left:${x}px;top:${y}px`;
     menu.innerHTML = `
-      <button onclick="editChatMsg(${index})">✏️ 编辑</button>
-      <button class="destructive" onclick="deleteChatMsg(${index})">🗑 删除</button>
+      <button onclick="editChatMsg(${index})">${ICONS.edit} 编辑</button>
+      <button class="destructive" onclick="deleteChatMsg(${index})">${ICONS.trash} 删除</button>
     `;
     setTimeout(() => { menu.style.display = 'none'; }, 3000);
   }, 500);
@@ -935,7 +935,11 @@ function escHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,
 function escAttr(s) { return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function formatDate(d) { if (!d) return ''; const date = new Date(d); return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }); }
 function timeAgo(d) { if (!d) return ''; const diff = Date.now() - new Date(d).getTime(); const mins = Math.floor(diff / 60000); if (mins < 60) return mins <= 0 ? '刚刚' : mins + '分钟前'; const hours = Math.floor(mins / 60); if (hours < 24) return hours + '小时前'; const days = Math.floor(hours / 24); if (days < 30) return days + '天前'; return formatDate(d); }
-function priorityIcon(p) { return p === 'high' ? '🔴' : p === 'low' ? '🟢' : '🟡'; }
+function priorityIcon(p) {
+  if (p === 'high') return ICONS.priorityHigh.replace('<svg ', '<svg class="pri-high" ');
+  if (p === 'low') return ICONS.priorityHigh.replace('<svg ', '<svg class="pri-low" ');
+  return ICONS.priorityHigh.replace('<svg ', '<svg class="pri-medium" ');
+}
 function isOverdue(dueDate, isCompleted) { if (!dueDate || isCompleted) return false; return new Date(dueDate) < new Date(); }
 
 // ====== 启动 ======

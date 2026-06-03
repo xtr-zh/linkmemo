@@ -1,4 +1,4 @@
-const CACHE_NAME = 'linkmemo-v4';
+const CACHE_NAME = 'linkmemo-v5';
 const BASE = '/linkmemo';
 const ASSETS = [
   BASE + '/',
@@ -6,6 +6,7 @@ const ASSETS = [
   BASE + '/css/style.css',
   BASE + '/js/db.js',
   BASE + '/js/ai.js',
+  BASE + '/js/icons.js',
   BASE + '/js/app.js',
   BASE + '/manifest.json',
   BASE + '/icons/icon-192.png',

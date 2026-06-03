@@ -1102,6 +1102,91 @@ body {
 }
 
 /* ═══════════════════════════════════════════
+   SVG Icon System
+   ═══════════════════════════════════════════ */
+
+/* Tab icons — inherit color from parent */
+.tab-icon svg {
+  display: block;
+  margin: 0 auto;
+}
+
+/* FAB icon center */
+.fab svg {
+  display: block;
+}
+
+/* Empty state icons */
+.empty-icon svg {
+  display: block;
+  margin: 0 auto;
+  color: var(--ink-muted);
+}
+
+/* Settings header icon */
+.settings-section h3 svg {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+/* Welcome icon */
+.welcome-icon svg {
+  display: block;
+  margin: 0 auto;
+  color: var(--ink-muted);
+}
+
+/* Button inline icons */
+.btn-primary svg,
+.btn-secondary svg,
+.btn-danger svg {
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+/* Context menu button icons */
+.context-menu button svg {
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+
+/* Clipboard banner icon */
+.clipboard-banner > svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+/* Priority picker */
+.priority-picker {
+  display: flex;
+  gap: 6px;
+}
+.priority-picker .category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.priority-picker svg {
+  flex-shrink: 0;
+}
+
+/* Priority indicator colors in lists */
+.todo-priority svg.pri-high   { color: var(--error); }
+.todo-priority svg.pri-medium { color: var(--warning); }
+.todo-priority svg.pri-low    { color: var(--info); }
+
+/* Chat send button icon */
+#chatSendBtn svg {
+  display: block;
+  margin-left: 1px;
+}
+
+/* Navbar icon */
+.navbar .btn-icon svg {
+  display: block;
+}
+
+/* ═══════════════════════════════════════════
    Reduced Motion
    ═══════════════════════════════════════════ */
 

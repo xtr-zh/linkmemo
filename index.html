@@ -19,7 +19,12 @@
   <!-- ====== 导航栏 ====== -->
   <div class="navbar" id="navbar">
     <h1 id="navTitle">对话</h1>
-    <button class="btn-icon" id="navRightBtn" onclick="showSettings()">⚙️</button>
+    <button class="btn-icon" id="navRightBtn" onclick="showSettings()" aria-label="设置">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.93 4.93l2.12 2.12m9.9 9.9l2.12 2.12M19.07 4.93l-2.12 2.12m-9.9 9.9l-2.12 2.12"/>
+      </svg>
+    </button>
   </div>
 
   <!-- ====== 内容区域 ====== -->
@@ -34,7 +39,12 @@
       </div>
       <div id="todoList"></div>
       <div class="empty-state" id="todoEmpty" style="display:none">
-        <div class="empty-icon">✅</div>
+        <div class="empty-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="4"/>
+            <path d="M8 12l3 3 5-6"/>
+          </svg>
+        </div>
         <h3>暂无待办事项</h3>
         <p>点击右下角 + 添加新待办</p>
       </div>
@@ -43,7 +53,12 @@
     <!-- === 链接页 === -->
     <div id="page-links" style="display:none">
       <div class="search-box">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="M21 21l-4.35-4.35"/>
+          </svg>
+        </span>
         <input type="text" id="linkSearch" placeholder="搜索链接标题、摘要..." oninput="renderLinks()">
       </div>
       <div class="category-bar" id="categoryBar"></div>
@@ -55,31 +70,45 @@
         </select>
       </div>
       <div id="clipboardBanner" class="clipboard-banner" style="display:none">
-        <span>📋 检测到剪贴板链接</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
+          <rect x="8" y="2" width="8" height="4" rx="1"/>
+        </svg>
+        <span>检测到剪贴板链接</span>
         <button onclick="useClipboardURL()">使用</button>
       </div>
       <div id="linkList"></div>
       <div class="empty-state" id="linkEmpty" style="display:none">
-        <div class="empty-icon">🔖</div>
+        <div class="empty-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="4.5"/>
+            <circle cx="16" cy="16" r="4.5"/>
+            <line x1="11.5" y1="11.5" x2="14" y2="14"/>
+          </svg>
+        </div>
         <h3>暂无收藏链接</h3>
         <p>点击右下角 + 添加链接</p>
       </div>
     </div>
 
-    <!-- === 设置页 === -->
     <!-- === 对话页 === -->
     <div id="page-chat" style="display:none">
       <div id="chatMessages"></div>
       <div class="chat-input-bar">
         <input type="text" id="chatInput" placeholder="发消息，比如：保存链接、创建待办..."
                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}">
-        <button onclick="sendChatMessage()" id="chatSendBtn">发送</button>
+        <button onclick="sendChatMessage()" id="chatSendBtn" aria-label="发送">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"/>
+            <path d="M22 2l-7 20-4-9-9-4z"/>
+          </svg>
+        </button>
       </div>
     </div>
 
     <div id="page-settings" style="display:none">
       <div class="settings-section">
-        <h3>🤖 AI 模型</h3>
+        <h3>AI 模型</h3>
         <div class="settings-card">
           <div class="settings-row">
             <span class="row-label">当前模型</span>
@@ -93,19 +122,22 @@
         </div>
       </div>
       <div class="settings-section">
-        <h3>🔑 API Key</h3>
+        <h3>API Key</h3>
         <div class="settings-card" id="apiKeysCard"></div>
       </div>
       <div class="settings-section">
-        <h3>🏷️ 自定义分类</h3>
+        <h3>自定义分类</h3>
         <div class="settings-card" id="customCatCard"></div>
       </div>
       <div class="settings-section">
-        <h3>📤 数据</h3>
+        <h3>数据</h3>
         <div class="settings-card">
           <div class="settings-row" onclick="exportData()" style="cursor:pointer">
             <span class="row-label">导出所有数据 (JSON)</span>
-            <span style="color:var(--primary)">📤</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <path d="M7 10l5 5 5-5M12 15V3"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -114,18 +146,39 @@
   </div>
 
   <!-- ====== FAB 按钮 ====== -->
-  <button class="fab" id="fab" onclick="openAddSheet()">+</button>
+  <button class="fab" id="fab" onclick="openAddSheet()" aria-label="添加">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="12" y1="6" x2="12" y2="18"/>
+      <line x1="6" y1="12" x2="18" y2="12"/>
+    </svg>
+  </button>
 
   <!-- ====== 底部 Tab 栏 ====== -->
   <div class="tabbar" id="tabbar">
     <button class="tab active" data-page="chat" onclick="switchTab('chat')">
-      <span class="tab-icon">💬</span><span>对话</span>
+      <span class="tab-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="4" width="20" height="14" rx="3"/>
+          <path d="M8 18L6 22l4-2h8a3 3 0 003-3v-2"/>
+        </svg>
+      </span><span>对话</span>
     </button>
     <button class="tab" data-page="todo" onclick="switchTab('todo')">
-      <span class="tab-icon">✅</span><span>待办事项</span>
+      <span class="tab-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="4"/>
+          <path d="M8 12l3 3 5-6"/>
+        </svg>
+      </span><span>待办事项</span>
     </button>
     <button class="tab" data-page="links" onclick="switchTab('links')">
-      <span class="tab-icon">🔖</span><span>链接收藏</span>
+      <span class="tab-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="8" cy="8" r="4.5"/>
+          <circle cx="16" cy="16" r="4.5"/>
+          <line x1="11.5" y1="11.5" x2="14" y2="14"/>
+        </svg>
+      </span><span>链接收藏</span>
     </button>
   </div>
 
@@ -156,10 +209,19 @@
       </div>
       <div class="form-group">
         <label>优先级</label>
-        <div style="display:flex;gap:8px" id="priorityPicker">
-          <button class="category-chip" data-p="high" onclick="selectPriority('high',this)">🔴 高</button>
-          <button class="category-chip active" data-p="medium" onclick="selectPriority('medium',this)">🟡 中</button>
-          <button class="category-chip" data-p="low" onclick="selectPriority('low',this)">🟢 低</button>
+        <div class="priority-picker" id="priorityPicker">
+          <button class="category-chip priority-high" data-p="high" onclick="selectPriority('high',this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            高
+          </button>
+          <button class="category-chip active priority-medium" data-p="medium" onclick="selectPriority('medium',this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            中
+          </button>
+          <button class="category-chip priority-low" data-p="low" onclick="selectPriority('low',this)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="4" x2="12" y2="9"/><line x1="12" y1="13" x2="12" y2="20"/></svg>
+            低
+          </button>
         </div>
       </div>
       <div class="form-group">
@@ -193,11 +255,17 @@
         <input type="url" id="linkURL" placeholder="https://...">
       </div>
       <div id="linkModeChoose">
-        <button class="btn-primary" onclick="startAIAnalysis()">🤖 AI 自动分析</button>
-        <button class="btn-secondary" onclick="showManualForm()">✍️ 手动填写</button>
+        <button class="btn-primary" onclick="startAIAnalysis()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px">
+            <path d="M12 2l2.5 5.5L20 10l-5.5 2.5L12 18l-2.5-5.5L4 10l5.5-2.5z"/>
+          </svg>
+          AI 自动分析
+        </button>
+        <button class="btn-secondary" onclick="showManualForm()">手动填写</button>
       </div>
       <div id="linkClipboardHint" style="display:none;margin-top:8px;font-size:12px;color:var(--ink-secondary);text-align:center">
-        📋 检测到剪贴板链接 · <a href="#" onclick="useClipboardInSheet();return false">使用</a>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:2px"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+        检测到剪贴板链接 · <a href="#" onclick="useClipboardInSheet();return false">使用</a>
       </div>
       <div id="linkAILoading" style="display:none">
         <div class="ai-loading">
@@ -222,8 +290,11 @@
           <label>标签（逗号分隔）</label>
           <input type="text" id="linkTags" placeholder="例如: SwiftUI, 性能优化">
         </div>
-        <p id="linkAIHint" style="font-size:11px;color:var(--ink-secondary);margin-bottom:8px;display:none">✨ 由 AI 生成，可手动修改</p>
-        <button class="btn-primary" onclick="saveLinkForm()">💾 保存链接</button>
+        <p id="linkAIHint" style="font-size:11px;color:var(--ink-secondary);margin-bottom:8px;display:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px"><path d="M12 2l2.5 5.5L20 10l-5.5 2.5L12 18l-2.5-5.5L4 10l5.5-2.5z"/></svg>
+          由 AI 生成，可手动修改
+        </p>
+        <button class="btn-primary" onclick="saveLinkForm()">保存链接</button>
       </div>
       <input type="hidden" id="linkEditId">
     </div>
@@ -256,6 +327,7 @@
 
 <script src="js/db.js"></script>
 <script src="js/ai.js"></script>
+<script src="js/icons.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
