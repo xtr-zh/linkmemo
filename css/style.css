@@ -1049,6 +1049,36 @@ body {
   background: var(--border);
 }
 
+/* Mic button — outline style, distinct from send */
+.chat-input-bar .mic-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--ink-secondary);
+  transition: all 0.18s var(--ease-fast);
+}
+.chat-input-bar .mic-btn:active {
+  background: var(--surface);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Mic button recording state — red pulsing glow */
+.chat-input-bar .mic-btn.recording {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+  animation: micPulse 1.5s ease-in-out infinite;
+}
+.chat-input-bar .mic-btn.recording:active {
+  background: var(--error);
+  transform: scale(0.88);
+}
+
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
 /* Chat welcome screen */
 .chat-welcome {
   text-align: center;

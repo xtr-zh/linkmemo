@@ -758,6 +758,100 @@ function quickChat(text) {
   sendChatMessage();
 }
 
+// ====== 语音输入 ======
+let recognition = null;
+let isListening = false;
+
+function toggleVoiceInput() {
+  if (isListening) {
+    stopVoiceInput();
+  } else {
+    startVoiceInput();
+  }
+}
+
+function startVoiceInput() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    toast('当前浏览器不支持语音输入');
+    return;
+  }
+
+  if (!recognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'zh-CN';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      document.getElementById('chatInput').value = transcript;
+      // 如果是最终结果，自动发送
+      if (event.results[event.results.length - 1].isFinal) {
+        setTimeout(() => {
+          const text = document.getElementById('chatInput').value.trim();
+          if (text) sendChatMessage();
+        }, 300);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      stopVoiceInput();
+      const errors = {
+        'not-allowed': '请允许麦克风权限后重试',
+        'no-speech': '未检测到语音，请重试',
+        'audio-capture': '未找到麦克风设备',
+        'network': '网络连接失败，请重试'
+      };
+      toast(errors[event.error] || '语音识别失败：' + event.error);
+    };
+
+    recognition.onend = () => {
+      stopVoiceInput();
+    };
+  }
+
+  try {
+    isListening = true;
+    updateMicButton();
+    recognition.start();
+  } catch (e) {
+    isListening = false;
+    updateMicButton();
+    toast('语音启动失败，请重试');
+  }
+}
+
+function stopVoiceInput() {
+  isListening = false;
+  updateMicButton();
+  if (recognition) {
+    try { recognition.abort(); } catch (e) { /* ignore */ }
+  }
+}
+
+function updateMicButton() {
+  const btn = document.getElementById('micBtn');
+  if (!btn) return;
+  if (isListening) {
+    btn.classList.add('recording');
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <rect x="6" y="6" width="12" height="12" rx="2"/>
+    </svg>`;
+  } else {
+    btn.classList.remove('recording');
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"/>
+      <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+    </svg>`;
+  }
+}
+
 async function sendChatMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
