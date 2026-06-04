@@ -58,8 +58,7 @@ function switchTab(page) {
   fab.style.display = (page === 'settings' || page === 'chat') ? 'none' : '';
 
   document.getElementById('navTitle').textContent = page === 'chat' ? '对话' : page === 'todo' ? '待办事项' : page === 'links' ? '链接收藏' : '设置';
-  document.getElementById('navRightBtn').style.display = page === 'settings' ? 'none' : '';
-  document.getElementById('navRightBtn').onclick = () => showSettings();
+  updateNavButton(page);
 
   if (page === 'chat') renderChat();
   if (page === 'todo') renderTodos();
@@ -74,7 +73,7 @@ function showSettings() {
   document.getElementById('page-settings').style.display = '';
   document.getElementById('fab').style.display = 'none';
   document.getElementById('navTitle').textContent = '设置';
-  document.getElementById('navRightBtn').style.display = 'none';
+  updateNavButton('settings');
   renderSettings();
 }
 
@@ -82,6 +81,40 @@ function showSettings() {
 async function renderAll() {
   if (state.page === 'todo') renderTodos();
   else if (state.page === 'links') { renderCategoryBar(); renderLinks(); }
+}
+
+// ====== 导航栏按钮 ======
+function updateNavButton(page) {
+  var btn = document.getElementById('navRightBtn');
+  if (page === 'settings') {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  if (page === 'chat') {
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
+    btn.onclick = startNewChat;
+    btn.setAttribute('aria-label', '新会话');
+  } else {
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.93 4.93l2.12 2.12m9.9 9.9l2.12 2.12M19.07 4.93l-2.12 2.12m-9.9 9.9l-2.12 2.12"/></svg>';
+    btn.onclick = showSettings;
+    btn.setAttribute('aria-label', '设置');
+  }
+}
+
+// ====== 新建会话 ======
+async function startNewChat() {
+  if (state.chatMessages.length > 0) {
+    state.chatMessages = [];
+    await clearChatHistory();
+  }
+  // 静默预加载上下文数据
+  var ctx = await buildContext();
+  if (ctx && ctx !== '暂无数据') {
+    state.chatMessages.push({ role: 'system', text: ctx, actions: [], hidden: true });
+  }
+  renderChat();
+  toast('新会话已开启');
 }
 
 // ====== Toast ======
@@ -718,7 +751,8 @@ async function ctxDeleteTodo() { if (confirm('确定删除？')) { await deleteT
 
 async function renderChat() {
   const container = document.getElementById('chatMessages');
-  if (state.chatMessages.length === 0) {
+  var visibleMsgs = state.chatMessages.filter(function(m) { return !m.hidden; });
+  if (visibleMsgs.length === 0) {
     container.innerHTML = `
       <div class="chat-welcome">
         <div class="welcome-icon">${ICONS.greeting}</div>
@@ -732,7 +766,7 @@ async function renderChat() {
         </div>
       </div>`;
   } else {
-    container.innerHTML = state.chatMessages.map((m, i) => {
+    container.innerHTML = state.chatMessages.filter(function(m) { return !m.hidden; }).map((m, i) => {
       const bubbleClass = m.role === 'user' ? 'user' : 'ai';
       let inner = m.role === 'user'
         ? escHtml(m.text)
