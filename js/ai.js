@@ -135,7 +135,7 @@ async function chatAgent(messages, userContext) {
 
 可用分类：${CATEGORIES.map(c => c.icon + c.name).join(', ')}
 
-操作格式（需要时在回复末尾附加，不要放在消息正文中）：
+【重要】任何数据变更（保存链接、创建待办、删除链接、删除待办）都必须使用 Action 标签执行，仅回复文字不会产生实际效果。在回复末尾附加：
 [ACTION:save_link]{"url":"...","title":"...","summary":"...","category":"分类名","tags":["标签"]}[/ACTION]
 [ACTION:create_todo]{"title":"...","notes":"...","priority":"high|medium|low","dueDate":"YYYY-MM-DD"}[/ACTION]
 [ACTION:delete_link]{"id":"ID"}[/ACTION]

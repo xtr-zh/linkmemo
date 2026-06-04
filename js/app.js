@@ -988,12 +988,19 @@ async function executeAction(action) {
         await saveTodo(todo);
         return { type, label: '已创建待办：' + todo.title };
       }
-      case 'delete_link':
+      case 'delete_link': {
+        const link = await getLink(data.id);
+        if (!link) return { type, label: '未找到对应链接（可能已被删除）' };
         await deleteLink(data.id);
-        return { type, label: '已删除链接' };
-      case 'delete_todo':
+        return { type, label: '已删除链接：' + link.title };
+      }
+      case 'delete_todo': {
+        const todos = await getAllTodos();
+        const todo = todos.find(function(t) { return t.id === data.id; });
+        if (!todo) return { type, label: '未找到对应待办（可能已被删除）' };
         await deleteTodo(data.id);
-        return { type, label: '已删除待办' };
+        return { type, label: '已删除待办：' + todo.title };
+      }
       default:
         return null;
     }
