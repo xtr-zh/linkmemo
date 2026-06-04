@@ -578,7 +578,7 @@ async function renderSettings() {
     const p = AI_PROVIDERS[k];
     return `<div class="settings-row">
       <span class="row-label">${p.name}</span>
-      <input type="password" placeholder="输入 Key" value="" id="apikey_${k}" onchange="saveApiKey('${k}',this.value)">
+      <input type="password" placeholder="输入 Key" value="" id="apikey_${k}" oninput="saveApiKey('${k}',this.value)">
     </div>`;
   }).join('');
 
